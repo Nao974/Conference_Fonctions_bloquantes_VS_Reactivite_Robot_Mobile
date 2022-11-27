@@ -1,120 +1,129 @@
-# Codes sources de la conférence : Optimiser son code sur µControleur
+# Codes sources de la conférence : Fonctions Bloquantes VS Réactivité des robots Mobiles
 
-Conférence présentée par [Nao974] pour [Robotic974] chez [EPITECH Réunion] le 25/03/2022 en présence des étudiants de 1ere à 3eme année.
+Conférence présentée par [Nao974] pour [Robotic974] chez [EPITECH Réunion] le 15/11/2022 en présence des étudiants de 1ere à 3eme année.
 
 Ce dépôt reprend les grandes lignes de la conférence et les différents codes sources présentés.
 
+La carte mentale servant à la présentation est disponible ici : [Carte Mentale]
 
-## Introduction
+# Introduction
+
+En partant d'un exemple simple de véhicule à guidage automatique nous allons voir l'impact des fonctions bloquantes sur la réactivité de celui-ci.
+
+## Mais en 1er lieu, c'est quoi un AGV ?
+
+Un AGV (ou Automatic Guided Vehicle) est un véhicule de transport travaillant sans conducteur (piloté et guidé automatiquement) permettant le transport de matériel principalement dans les usines d'un poste de travail à un autre ou pour l'entreposage.
+
+Il est utilisé généralement en intérieur, mais peut l’être aussi en extérieur (sous certaines conditions) ; il peut transporter des charges légères ou très lourdes (plusieurs tonnes). 
+
+Il peut être guidé de différentes manières.
+
+**Filoguidage** : Fil émetteur d’ondes enfoui, rail métallique au sol, fil électrique noyé au sol… Pour se déplacer, l’AGV suit une piste tracée au sol. Le robot détecte le signal transmis par la piste et le suit, comme s’il était sur une voie ferrée. La mise en place de cette technologie de déplacement ainsi que toute modification du parcours nécessitent des travaux. Le filoguidage est donc adapté aux applications simples sans possibilité de flexibilité
+
+**Optoguidage** : Alternative moins coûteuse et plus simple que le filoguidage, l’optoguidage permet à l’AGV de suivre une ligne peinte au sol, grâce à des caméras embarquées. Cette solution ne permet pas non plus une souplesse optimale, mais ne nécessite pas de travaux de gros œuvre
+
+## Les AMR
+
+Un robot mobile autonome est un type de robot qui peut comprendre et se déplacer dans son environnement de manière indépendante.
+
+Ils utilisent un ensemble sophistiqué de capteurs, de machine learning et de calculs pour planifier la trajectoire, afin d'interpréter et de naviguer dans leur environnement.
+
+**Laserguidage** : Ce système permet à l’AMR de se mouvoir grâce à un maillage de réflecteurs intégrés dans son environnement. Equipé d’un laser tournant, le robot se déplace grâce au principe de l’odométrie, et précise sa trajectoire grâce aux réflecteurs. La combinaison de ces deux technologies permet aux AMR de s’orienter avec précision. En outre, il est possible de modifier facilement le circuit du robot, grâce aux logiciels de supervision inclus dans le système.
+
+**Géoguidage** : Ce système se base sur une cartographie des installations et ne requiert ni aménagement d’infrastructure, ni travaux. L’AMR parvient à se repérer de façon autonome et est en mesure de calculer son trajet automatiquement. L’avantage, c’est qu’il est possible à tout moment de modifier la cartographie de l’environnement dans lequel évolue le robot.
 
 Les MCU (Micro Controller Unit) sont principalement utilisés dans les systèmes autonomes. Dans la suite de cette présentation, nous simplifierons un système embarqué comme un système autonome mais en déplacement.
 
-Cela implique des contraintes physiques différentes en fonction du système :
-- Taille
-- Poids
-- Energie
-- Robustesse
-- Etc...
+**Le choix** de l'AGV ou de l'AMR se fera en fonction de : 
+- de la topologie du lieu
+- du besoin ou non de modifier le tracé
+- de l'autonomie (au sens prise de décision)
+- du degré de collaboration souhaité
 
- Mais également des contraintes techniques :
- - Sureté de fonctionnement
- - Sécurité des données
- - Et des contraintes très fortes sur :
-   - La taille Mémoire
-   - La Vitesse de traitement
-   - La Réactivité du système
+## Quelques photos
 
-Par exemple le MCU Atmel 328P de la carte Arduino est cadencé à 16Mhz et n'a que 2Ko de RAM.
+A vous de faire la différence entre un AGV et un ARM :wink:
+<p> <img src="assets/AGV-AMR.png"  alt="AGV-AMR"> </p>
 
- Afin d'imager la contrainte de Réactivité, prenons l'exemple d'un véhicule autonome avec le châssis Maqueen et une carte Micro:bit.
+# Mise en Oeuvre de notre AGV
 
-Nous le programmons dans un 1er temps avec un code simple sur MakeCode, en fonction de 2 capteurs infra-rouge placés dessous à l'avant, nous commandons les moteurs afin de suivre une piste noire : 
+Voici les composants utilisés pour notre démonstration.
 
-<p >
-    <img src="assets/img_video_suiveur_ligne_simple.jpg"  width="75%" alt="Code Suivi ligne avec capteur distance US">
-</p>
+## Arduino
 
-**Le véhicule autonome suit la route sans aucun problème :**
+Ce n'est pas simplement le nom d'une carte à base de microcontrôleur.
 
-<p>
-    <img src="assets/video_suiveur_ligne_simple.gif"  alt="Video Suivi ligne avec capteur distance US">
-</p>
+L’Arduino est un projet inventé en 2005 par une équipe italienne de l’Institut du Design d’Interaction d’Ivrea désirant permettre à des étudiants en art et en design de créer tout type de projets grâce à une petite carte électronique que l’on programmerai facilement via un logiciel (Arduino IDE) et où l’on pourrait y brancher des LEDs, des moteurs, des servomoteurs, des capteurs, des éléments électroniques….
 
-Nous rajoutons maintenant la lecture de distance d'un objet par le capteur ultrason, si un obstacle est devant à moins de 10cm alors le véhicule s'arrête, sinon il continu à suivre la piste :
+Le terme Arduino regroupe :
+- Une Fondation qui distribue et publie des cartes à base de MCU en Open source 
+- Un IDE
+- Un Framework que nous allons utiliser à partir du module Platform.io
 
-<p>
-    <img src="assets/video_suiveur_ligne+capteur_distance_us.jpg"  width="75%" alt="Code Suivi ligne simple">
-</p>
+*Pour notre AGV, nous utiliserons la carte Arduino Uno à base du MCU ATMEL 328P : https://bentek.fr/2-arduino-uno/
 
-**Le véhicule NE SUIT PLUS LA ROUTE :**
-<p>
-    <img src="assets/video_suiveur_ligne+capteur_distance_us.gif"  alt="Video Suivi ligne avec capteur distance US">
-</p>
+## Motor Shield
+Le module Arduino Motor Shield se connecte sur une carte Arduino Uno, et permet de contrôler la vitesse et le sens de rotation de deux moteurs à courant continu  (2A max).
 
-### Pourquoi ?
+[Fiche Composant Motor-Shield]
 
-Les librairies standards utilisent une fonction bloquante de type PulseIn() afin de mesurer le temps écoulé entre l'émission des trames ultra-son et leurs retours une fois qu'elles ont rebondi sur un éventuel obstacle.
+## Suiveur de Ligne
 
-Ces capteurs peuvent en moyenne mesurer une distance max de 3 mètres, la vitesse du son étend de 347 m/s (à 25°), le MCU pourra donc être bloqué peandant 173 ms (sans obstacle devant) à chaque lecture de distance. 
+Ce capteur est basé sur une LED infra rouge qui va émettre un rayon, et un phototransistor qui devrait recevoir en retour ce rayon réfléchi par une surface plus ou moins clair. La sortie S est digitale, elle prendra 
+soit la valeur 5V (VRAI), soit la valeur 0V (FAUX).
+Nous en utiliserons deux.
 
-*Cela est suffisant pour laisser dévier notre véhicule autonome en dehors de la route.*
+[Fiche Composant Suiveur-Ligne]
 
-***Il est donc important de faire la chasse aux fonctions bloquantes !!!***
+## Capteur de Distance Ultrason
 
-Ressources additionnelles : 
-- Mesure de distance par interruption : https://github.com/Robotic974/atmega328p-registers-and-interrupts
-- Mise en œuvre  de 2x capteurs Ultra-son : https://youtu.be/Ve35dOHQbLI
+Le principe de fonctionnement du capteur est entièrement basé sur la vitesse du son.
+Voilà comment se déroule une prise de mesure :
+-  Le capteur envoie une série d’impulsions ultrasoniques à 40KHz inaudible pour l'être humain, 
+-  Les ultrasons se propagent dans l'air jusqu'à toucher un obstacle et retourne dans l'autre sens vers le 
+capteur
+-  Le capteur détecte l'écho et clôture la prise de mesure
 
-___
+Placer à l'avant, il permettra de détecter d'éventuels obstacles.
 
-## Notre projet de démonstration
+[Fiche Composant Distance-Ultra-Son]
 
-### K2000
+## Le Châssis
 
-<p> <img src="assets/K2000.gif"  alt="Video K2000"> </p>
+Châssis Turtle 2WD constitué d'un plateau métallique rond, de 2 moto-réducteurs, de 2 roues à pneus souples, d'une roue métallique, d'un support de 5 piles 1,5V.
 
-Ce qui caractérise ce véhicule autonome est ..... le jeux de lumière à l'avant !!!
+<p> <img src="assets/chassis.png"  alt="Chassis Turtle"> </p>
 
-**Notre  Objectif :**
-
-Ecrire le code d'un chenillard avec 8 Leds. Ce code devra être léger et ne devra pas bloquer les autres fonctions de notre véhicule autonome.
-
-Afin de simplifier le code, l'animation ne se fera que dans un sens (pas d'aller-retour).
-
-**Schéma de Câblage**
-
-<p> <img src="assets/cablage.png"  alt="Câblage" width="75%"> </p>
-
-Aucune difficulté particulière dans le câblage, chaque LED étend allumée l'une après l'autre, nous pouvons prendre le 5V directement à chaque broche du MCU. 
-
-**Outil de Développement**
+# C'est partie pour le Codage
+## Outil de Développement
 
 Afin de développer en langage C, compiler et transférer nos prochains codes sources sur notre carte MCU, nous utiliserons l'IDE VSCode avec l'extension [PlatformIO] .
 
-**Codes Sources**
+## Codes Sources
 
 L'ensemble des codes sources décrits ci-après se trouvent dans le dossier [./src] de ce même dépôt.
 
-___
+## Organisation des codes sources
 
-## 01_BASIC_BOUCLE_FOR
+Chaque exercice proposé correspond à un programme Arduino indépendant des autres exercices. Néanmoins, pour ne pas avoir à gérer autant de projets PlatformIO qu'il y'a d'exercices, on peut s'arranger pour tous les faire coexister au sein d'un même projet. 
 
-[Fichier source](./src/01_Basic_Boucle-For.cpp)
+Chaque exercice est traité dans un fichier source portant l'extension `.cpp` et stocké dans le dossier `src`. Par défaut, PlatformIO se charge de compiler tous les fichiers sources qu'il trouve dans le dossier `src`, et notamment le traditionnel `main.cpp`. Aussi, pour modifier ce comportement, il existe une directive très pratique à insérer dans le fichier `platformio.ini` qui va nous permettre d'indiquer précisément ce qu'il faut compiler ou non. Par exemple, si l'on souhaite compiler le programme décrit dans le fichier `01_Suiveur_Ligne.cpp`, et uniquement celui-là, il suffira de le spécifier à l'aide de la directive `src_filter` de la manière suivante :
 
-Rien de compliqué pour commencer, 
-- Une boucle `for` dans le `setup()` afin d'initialiser les broches du MCU en `Sortie` où sont branchées les LEDs.
+```ini
+[env:uno]
+platform   = atmelavr
+board 	   = uno
+framework  = arduino
+src_filter = -<*> +<01_Suiveur_Ligne.cpp>
+```
 
-- Puis dans la boucle principale, une autre boucle `for` : 
-   - Nous allumons une LED, 
-   - Nous attendons 75ms afin que note œil puisse capter la lumière
-   - Nous éteignons la LED
-   - La boucle `for` passe à la LED suivante 
-- Une fois la dernière LED traitée, nous sortons de la boucle `for`
-- La boucle principale relance une nouvelle boucle `for`
+Ici on construit une liste de fichiers à compiler, en commençant par exclure tous les fichiers se trouvant dans le dossier `src` avec la balise `-<*>`, puis en insérant le seul fichier `01_Suiveur_Ligne.cpp` que l'on souhaite compiler avec la balise `+<01_Suiveur_Ligne.cpp>`.
 
-*Le code semble propre, fonctionnel, correspondre aux différents tutoriels que nous pouvons trouver sur internet, mais ...*
+Par conséquent, pour compiler un autre programme, vous devrez préciser le nom du fichier correspondant avec la balise appropriée. Chaque fichier solution est spécifique et indépendant des autres. Vous ne pouvez donc en compiler qu'un seul à la fois.
 
-### **Quelques Règles de déclaration**
+*Reportez-vous à la documentation officielle de PlatformIO pour plus de détails sur [la directive `src_filter`][src-filter].*
+
+## Quelques Règles de déclaration
 
 ### Type des variables
 
@@ -138,7 +147,7 @@ Nous voyons tout de suite la place utilisée en mémoire.
 Il convient de ne pas utiliser  `#define` car le type de la constante n'est pas défini.
 
 Privilégier la déclaration :
-```java
+```c++
 const uint8_t NB_LED = 8;
 ```  
 
@@ -146,130 +155,226 @@ const uint8_t NB_LED = 8;
 
 Notre code est un petit exemple, les variables globales déclarées sont utilisées dans le `setup()` et le `loop()`, nous pouvons donc les laisser en globale mais il convient de bien comprendre le fonctionnement de la mémoire : https://quai-lab.com/arduino-ses-memoires
 
+## **01_Suiveur_ligne.cpp**
 
-<p><font color="red"> <u> <h1>LE GROS PROBLEME</h1> </u> </font></p>
+Petit programme permettant de valider notre prototype.
 
-L'utilisation de la fonction :
-```cpp
-delay(75);
+Le dossier `\lib` contient la librairie permettant de contrôler les deux moteurs à partir du Motor Shield.
+[Fiche Composant Motor-Shield]
+
+`motorLeft` et `motorRight` sont instanciés à partir de la classe `MotorShield` ayant 3 méthodes publiques :
+
+- Initialiser les broches Arduino pour le pilotage du moteur
+```c++
+        void init(uint8_t pinDIR, uint8_t pinBRAKE, uint8_t pinCMD);
 ```
-C'est une fonction **BLOQUANTE !!!**, cela va bloquer toutes les autres fonctions pendant   8 * 75 ms = 600 ms à chaque boucle, notre véhicule autonome ira droit dans le mur... le code 02 va résoudre ce problème.
-___
-
-## 02_MILLIS
-
-[Fichier source](./src/02_Millis.cpp)
-
-la fonction `millis()` retourne le nombre de millisecondes écoulées depuis le démarrage/reset de la carte, il suffit de le comparer avec celui de notre derniere action sur le chenillard, si l'intervalle est >75ms alors nous passons à la LED suivante, nous remplaçons donc notre fonction bloquante par une condition.
-
-C'est beaucoup mieux,
-
-- Plus de fonction bloquante 
-- Code portable sur différents MPU
-
-*Mais nous pouvons l'optimiser afin de prendre beaucoup moins de cycle d'horloge pour notre chenillard.*
-
-___
-
-## 03_MILLIS+PORTD
-
-[Fichier source](./src/03_Millis+PortD.cpp)
-
-**Attention**, nous entamons notre descente au cœur  du MCU, le code va devenir spécialisé pour notre µcontroleur Atmel 328P, et ne sera donc plus portable avec d'autres cartes. Nous allons également nous éloigner du framework `Arduino`.
-
-Vous aurez besoin pour cela des documents suivants :
-
-- Le schéma [PINOUT] de la carte Arduino Uno 
-- La DataSheet du µControleur [Atmel 328P]
-
-
-### Le PortD
-Les différentes broches digitales du 328P sont regroupées dans des `PORT`, pilotés par des registres.
-
-Notre montage utilise les broches 0 à 7, ce n'est pas un hasard car celles-ci sont toutes rattachées au PORT D. C'est le seul port de l'Arduino UNO regroupant 8 broches (voir le schéma [PINOUT]).
-
-*Par contre les broches 0 et 1 sont également branchées en interne de la carte sur le port série. Il convient donc à chaque téléversement de votre programme de débrancher ces broches de votre montage.*
-
-Nous allons dans 1er temps initialiser ce PORT digital en `Sortie` grâce au registre DDR :
-
-```cpp
-DDRD  = B11111111; // Paramétrage des broches du port D en mode OUTPUT
+- Envoyer la consigne de vitesse au moteur. Une valeur négative fait tourner le moteur en sens inverse.
+```c++
+        void speed(int16_t speed);
 ```
-Cela remplace la boucle `for` dans le `setup();`
-
-Le registre PORTD permet d'appliquer la valeur 0 (0V) ou 1 (5V) à l'ensemble des broches en 1 seule instruction :
-```cpp
-PORTD = B00000000; // On éteint toutes les Leds
+- Frein moteur
+```c++
+        void stop();
 ```
 
-Il nous reste plus qu'à modifier notre ancien code afin de remplacer la fonction `digitalWrite()` par l'affectation de ce registre avec un décalage à gauche pour chaque changement de LED :
-```cpp
-PORTD = B00000001  << led++; 
-led %=  NB_LED; // Permet de repasser de la Led 7++ à la Led 0
+Les deux capteurs de Suivi de ligne sont digitaux, il suffit d'initialiser les broches de l'Arduino en entrée :
+```c++
+pinMode(PIN_LINE_LEFT, INPUT);
+``` 
+Puis lire l'état de ces broches dans la boucle principale :
+```c++
+uint8_t lineLeft = digitalRead(PIN_LINE_LEFT);
 ```
 
-L'affectation direct d'un PORT est 6 à 8 fois plus rapide que la fonction `digitalWrite()`, sachant que nous affectons directement les 8 broches en une seule opération, je vous laisse calculer le temps gagné.
+Si la valeur est `true`, le capteur est sur la ligne noire.
 
-Je vous laisse découvrir ce qui se cache derrière la fonction [digitalWrite()] afin de mieux comprendre sa lenteur.
-___
+De simples conditions imbriquées permettent de tourner à gauche, à droite ou aller tout droit en fonction des valeurs retournées par ces 2 capteurs gauche / droit.
 
-## 04_PORTD+TIMER
+Résultat, notre AGV suit la ligne noire sans aucun problème :
+<p> <img src="assets/video_01_Suivi_ligne.gif"  alt="Chassis Turtle"> </p>
 
-[Fichier source](./src/04_PortD%2BTIMER.cpp) 
+## **02_Lecture_Distance_pulseIn.cpp**
 
-C'est super, notre code est 40 fois plus rapide qu'au début, sans fonction bloquante.... Mais que se passera-t-il si mes différentes fonctions de ma boucle principale (lecture des capteurs, machine à état, etc...) durent plus 75 ms...
-Vous pouvez faire le test en rajoutant un `delay(1500);` en fin du `loop()` dans le précèdent exercice.
+Notre AGV se déplace en suivant la ligne comme un vrai dans une usine, c'est super !!! mais si un humain passe devant .... ben là .... ça fait mal.
 
-Mon chenillard super fluide a pris un sacré coup dans l'aile, l'animation rame...
+Donc nous devons détecter si un obstacle et devant notre AGV et dans ce cas l'arrêter.
 
-Bon là, va falloir s'accrocher est commencer par bien comprendre comment fonctionne un TIMER en travaillant les tutoriels I à III : https://www.locoduino.org/spip.php?article84
+Nous allons utiliser le capteur HC-SR04 qui est le standard des capteurs à base d'ultra son.
 
-OK, je suis d'accord ce n’est pas simple, mais je vous conseille de créer une calculette avec votre tableur préféré afin de trouver le bon prédiviseur, la valeur de débordement, et nombre de Tac pour votre variable *compteurTimer* .
+Voici la fiche afin de comprendre le fonctionnement :  [Fiche Composant Suiveur-Ligne]
 
-Donc, vous l'aurez compris, un TIMER est un compteur que nous allons paramétrer afin de diviser la vitesse de l'horloge jusqu'a avoir un tic toutes les 75ms.
-A ce moment le TIMER lèvera une interruption de débordement et le µControleur arrêtera sa boucle principale afin d'exécuter notre fonction `ISR(TIMER2_COMPA_vect)` comprenant l'affectation du PORTD vu précédemment.
+Nous allons donc initialiser en `Sortie` la broche branchée sur TRIGGER, et en `Entrée` la broche connectée sur ECHO.
+```cpp
+pinMode(TRIG, OUTPUT);
+pinMode(ECHO, INPUT);
+```
+Puis générer le signal TRIGGER avec un passage à l'état `HAUT` de 10µs.
+```cpp
+digitalWrite(TRIG, HIGH);
+delayMicroseconds(10);
+digitalWrite(TRIG, LOW);
+```
+Nous pouvons maintenant mesurer le temps à l'état de la broche ECHO avec la fonction `pulseIn()` et la convertir en centimètre.
+```cpp
+distance = US2CM * pulseIn(ECHO, HIGH);
+```
+<p> <img src="assets/pulseIn.png"  alt="fonction pulseIn()"> </p>
 
-Le code source est largement commenté mais pour bien comprendre le fonctionnement il convient de travailler les tutoriels cités plus haut.
+Le coefficient US2CM permet de convertir le temps en 
+µs vers des centimètres.
+- Sachant que la vitesse du son à 24° est de 344 mètres par seconde
+- Le signal va faire un aller puis un retour donc à diviser par deux
+```cpp 
+const float US2CM = .017300; // 24°C 
+```
 
-A noter que les variables utilisées dans la routine d'interruption (ISR) doivent être déclarées avec le qualificatif `volatile` afin de prévenir le compilateur quelles peuvent être modifiée par un moyen extérieur au programme en cours (*par interruption donc*).
+En cadeau, une calculette pour convertir la durée en distance et inversement : [Calculette_Duree-Distance]
+
+## **03_Suiveur_Ligne+Distance_pulseIn.cpp**
+
+Il suffit de prendre le 1er programme et rajouter notre mesure de distance.
+
+- Si la distance est > 20 cm alors on avance.
+- Sinon on stop l'AGV.
+```cpp 
+else {
+        motorLeft.stop();
+        motorRight.stop();
+}
+```
+
+<p> <img src="assets/video_03_Suiveur_Ligne_Distance_pulseIn.gif"  alt="03_Suivi_ligne+Distance-pulsein"> </p>
+
+<font color="red"><h2>Y a comme un problème</h2></font>
+On dirait que l'AGV à bu.... il ne suit plus la ligne.
+
+La fonction pulseIn() est bloquante, elle peut attendre plus de 145 ms (voir indéfiniment) que la broche ECHO repasse à l'état bas en cas d'absence d'obstacle.
+
+Cela bloque la boucle principale, dans l'attente l'AGV avance suivant la dernière commande reçue.
+
+Il perd alors la ligne noire et tourne sur lui-même.
+
+Nous pouvons rajouter un `timeout` lors de l'appel de la fonction `pulseIn()`mais cela engendre un autre problème dans lequel nous allons envoyer une nouvelle trame d'ultra-son alors que la précédente est susceptible de revenir, et donc fausser la mesure.
+
+Mais nous avons une autre solution !!!
+
+## **04_Lecteure_Distance_interrupt.cpp**
+
+Nous allons descendre d'un cran dans le matériel, les interruptions sont spécifiques à chaque microcontrôleur et sont *branchées* différemment d'une carte à une autre. 
+
+Il convient de récupérer différents documents qui nous serviront à trouver la bonne broche en fonction de l'interruption souhaitée.
+- le DataSheet du micro Controleur afin de trouver la bonne interruption : [Atmel 328P]
+- le Schéma PINOUT décrivant chaque broche de la carte afin de retrouver notre broche d'interruption externe : [PINOUT Arduino Uno]
+
+### **Une interruption, c'est quoi ?**
+
+Une interruption, comme son nom l’indique, consiste à interrompre momentanément le programme principal en cours d'exécution afin d'effectuer une autre action.
+Une sauvegarde des différents registres est effectuéé au préalable, quand cette action est terminée, le microcontrôleur restaure les registres et retourne à l’exécution du programme principal à l’endroit exact où il l’avait laissé.
+
+Il existe différentes interruptions : 
+- internes au microcontrôleur provenenant des `Timers`, `Watchdog`, `UART`, `I2C`, etc... 
+- externes par le changement d'état de broches spécifiques.
+
+Pour le 1er cas, je vous laisse reprendre le support du précèdent Talk traitant des `Timers`: https://github.com/Nao974/Conference_Optimiser_son_code_sur_MCU
+
+**Mon aide-mémoire sur les interruptions de l'ATMEL 328P :** [Carte Mentale ISR] 
+
+Nous allons donc nous intéresser aux interruptions dites externes, car le déclencheur se trouvera en dehors du microcontrôleur.
+
+### **Les interruptions externes**
+Là encore, il convient de distinguer deux types d'interruptions externes : 
+- **INTx** les plus complètes avec 4 modes de déclenchements différents et rattachées à une broche spécifique, mais aux nombres de 2 seulement sur l'ATMEL 328P
+- **PCINTx** `Pin Change Interrupt` rattachées non plus à une broche mais à un port complet. Il conviendra donc de faire une discrimation dans l'interruption afin de connaitre la broche ayant levée l'interruption
+
+### **Rappel de notre besoin**
+Afin de mesurer la distance d'un objet à partir de notre capteur HC-SR04, nous devons mesurer le temps passé à l'état `HAUT` de la broche `ECHO`.
+
+Opérations à effectuer : 
+- Lors du passage à l'état `HAUT` de la broche `ECHO`
+   - mémorisation du temps *T1* correspondant au départ de la mesure
+- Lors du passage à l'état `BAS` de la broche `ECHO`
+   - mémorisation du temps *T2* correspondant à la fin de la mesure
+
+Il nous suffira de faire *T2 - T1* pour avoir le temps passé à l'état `HAUT` par la broche `ECHO`.
+
+Nous allons pour cela utiliser le vecteur d'interruption INT0 sur la broche 2 en mode `CHANGE`.
+
+Ce document n'est pas un cours complet sur la gestion des interruptions, merci de vous reporter
+- à la [Carte Mentale ISR] pour le détail du fonctionnement des interruptions 
+- et l'atelier https://github.com/Robotic974/atmega328p-registers-and-interrupts pour la mise en pratique. 
+
+Vous trouverez dans le dossier `\include` le code commenté spécifique à l'implémentation d'un capteur `HC-SR04` sur *Arduino Uno*.
+
+## **05_Suiveur_Ligne+Distance_interrupt.cpp**
+
+Il nous suffit maintenant d'intégrer notre gestion du capteur `HC-SR04` dans notre programme de Suiveur de ligne.
+
+On instancie notre capteur à partir de la structure décrite dans notre librairie, le constructeur va initialiser le sens des broches et rattacher la routine d'interruption au vecteur :
+```cpp
+    sr04(uint8_t trigger, uint8_t echo) {
+        pinMode(pin_trigger=trigger, OUTPUT);
+        pinMode(pin_echo=echo, INPUT);
+
+        attachInterrupt(digitalPinToInterrupt(pin_echo), HC04Isr, CHANGE);
+    }
+```
+
+Dans notre boucle on vérifie si la lecture de distance est terminée, dans ce cas nous la durée à l'état `HAUT` de la broche `ECHO`, conversion en centimètre puis relance d'une nouvelle mesure : 
+```cpp
+    if (finished) {
+    // calcule de la durée de ECHO à l'état haut
+        duration  = end_us - start_us;
+
+    // Conversion    
+        distance = US2CM * duration;
+
+    // Déclenchement d'une nouvelle mesure
+        distanceSensor.start();
+        finished= false;
+    }
+```
+
+Et enfin si la distance est > 20cm alors notre AGV avance, sinon il stop.
+
+<p> <img src="assets/video_05_Suiveur_Ligne_Distance_interrupt.gif"  alt="05_Suiveur_Ligne_Distance_interrupt"> </p>
 
 ___
 
 ## En Conclusion
 
-Voilà, nous avons maintenant un code très performant, sans fonction bloquante, dont le déclenchement n'est plus lié à la boucle principale.
+Voilà, nous avons maintenant un code performant, sans fonction bloquante dans la boucle principale, notre AGV est réactif.
 
-Nous n'utilisons plus de fonctions *gourmandes* du framework Arduino, par contre ce code est maintenant spécifique à un seul micro contrôleur.
+En Bonus, voici un AGV de type **Optoguidage** avec une analyse d'image effectuée par la caméra [HuskyLens] permettant *d'externaliser* cette analyse très gourmande en ressource, le microcontrôleur ne fait que lire le résultat par liaison I2C.
+
+<p> <img src="assets/video_BONUS_ExoMars_optoguidage.gif"  alt="video_BONUS_ExoMars_optoguidage"> </p>
+
+Zoom sur l'analyse d'image avec la conversion de la ligne à suivre en Vecteur : 
+<p> <img src="assets/video_BONUS_ExoMars_Zoom_vecteur.gif"  alt="video_BONUS_ExoMars_Zoom_vecteur"> </p>
+
+___
 
 **Bon code à tous !**
 ___
 
-## Organisation des codes sources
 
-Chaque exercice proposé correspond à un programme Arduino indépendant des autres exercices. Néanmoins, pour ne pas avoir à gérer autant de projets PlatformIO qu'il y'a d'exercices, on peut s'arranger pour tous les faire coexister au sein d'un même projet. 
-
-Chaque exercice est traité dans un fichier source portant l'extension `.cpp` et stocké dans le dossier `src`. Par défaut, PlatformIO se charge de compiler tous les fichiers sources qu'il trouve dans le dossier `src`, et notamment le traditionnel `main.cpp`. Aussi, pour modifier ce comportement, il existe une directive très pratique à insérer dans le fichier `platformio.ini` qui va nous permettre d'indiquer précisément ce qu'il faut compiler ou non. Par exemple, si l'on souhaite compiler le programme décrit dans le fichier `01_Basic_Boucle-For.cpp`, et uniquement celui-là, il suffira de le spécifier à l'aide de la directive `src_filter` de la manière suivante :
-
-```ini
-[env:uno]
-platform   = atmelavr
-board 	   = uno
-framework  = arduino
-src_filter = -<*> +<01_Basic_Boucle-For.cpp>
-```
-
-Ici on construit une liste de fichiers à compiler, en commençant par exclure tous les fichiers se trouvant dans le dossier `src` avec la balise `-<*>`, puis en insérant le seul fichier `01_Basic_Boucle-For.cpp` que l'on souhaite compiler avec la balise `+<01_Basic_Boucle-For.cpp>`.
-
-Par conséquent, pour compiler un autre programme, vous devrez préciser le nom du fichier correspondant avec la balise appropriée. Chaque fichier solution est spécifique et indépendant des autres. Vous ne pouvez donc en compiler qu'un seul à la fois.
-
-*Reportez-vous à la documentation officielle de PlatformIO pour plus de détails sur [la directive `src_filter`][src-filter].*
 
 [EPITECH Réunion]: https://www.epitech.eu/fr/ecole-informatique-la-reunion
 [Robotic974]:      https://www.facebook.com/robotic974
 [Nao974]:          https://www.youtube.com/channel/UC9U0Txo279cyaHdZIZnFn_g
 
+[Carte Mentale]:    https://www.xmind.net/m/crw8Ea
+[Carte Mentale ISR]: https://www.xmind.net/m/Sm6Qam
+
+[Fiche Composant Motor-Shield]: assets/S01_Shield_Moteur_R3_base_L298.pdf
+[Fiche Composant Suiveur-Ligne]: assets/C01_Suiveur_Ligne_Digital.pdf
+[Fiche Composant Distance-Ultra-Son]: assets/C02_Capteur_Distance_Ultrason
+
+[Calculette_Duree-Distance]: assets/Calculette_Duree-Distance.xlsx
+
+[HuskyLens]: https://www.dfrobot.com/huskylens.html
+
 [Atmel 328P]:      https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf
-[PINOUT]:          assets/pinout_328P.pdf
+[PINOUT Arduino Uno]:          assets/pinout_328P.pdf
 [digitalWrite()]:  https://garretlab.web.fc2.com/en/arduino/inside/hardware/arduino/avr/cores/arduino/wiring_digital.c/digitalWrite.html
 [PlatformIO]:      https://platformio.org/?utm_source=platformio&utm_medium=piohome
 [./src]:             src/

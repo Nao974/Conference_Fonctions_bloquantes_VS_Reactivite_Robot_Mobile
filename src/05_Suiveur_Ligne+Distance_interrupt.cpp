@@ -13,7 +13,7 @@ const uint8_t PIN_LINE_RIGHT = 4;
 
 // Distance par UltraSon
 const uint8_t TRIG = 7;
-const uint8_t ECHO = 2; // Interruption PCINT0
+const uint8_t ECHO = 2; // Interruption INT0
 const float US2CM = .017300; // 24°C
 
 uint32_t duration;
