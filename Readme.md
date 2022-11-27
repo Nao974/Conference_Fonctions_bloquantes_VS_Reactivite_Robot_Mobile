@@ -360,7 +360,7 @@ ___
 
 [EPITECH Réunion]: https://www.epitech.eu/fr/ecole-informatique-la-reunion
 [Robotic974]:      https://www.facebook.com/robotic974
-[Nao974]:          https://www.youtube.com/channel/UC9U0Txo279cyaHdZIZnFn_g
+[Nao974]:          https://www.youtube.com/@Nao974Robotic
 
 [Carte Mentale]:    https://www.xmind.net/m/crw8Ea
 [Carte Mentale ISR]: https://www.xmind.net/m/Sm6Qam
