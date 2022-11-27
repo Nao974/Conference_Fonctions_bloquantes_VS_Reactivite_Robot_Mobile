@@ -367,7 +367,7 @@ ___
 
 [Fiche Composant Motor-Shield]: assets/S01_Shield_Moteur_R3_base_L298.pdf
 [Fiche Composant Suiveur-Ligne]: assets/C01_Suiveur_Ligne_Digital.pdf
-[Fiche Composant Distance-Ultra-Son]: assets/C02_Capteur_Distance_Ultrason
+[Fiche Composant Distance-Ultra-Son]: assets/C02_Capteur_Distance_Ultrason.pdf
 
 [Calculette_Duree-Distance]: assets/Calculette_Duree-Distance.xlsx
 
